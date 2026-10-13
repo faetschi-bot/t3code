@@ -460,6 +460,18 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["enter return command ctrl multiline prompt new line composer"],
   },
   {
+    id: "usage-refresh-interval",
+    title: "Usage refresh interval",
+    to: "/settings/general",
+    searchTerms: ["usage limits quota refresh interval auto poll subscription thread details"],
+  },
+  {
+    id: "usage-headline-window",
+    title: "Usage headline window",
+    to: "/settings/general",
+    searchTerms: ["usage limits quota headline window session weekly monthly thread details"],
+  },
+  {
     id: "follow-up-behavior",
     title: "Follow-up behavior",
     to: "/settings/general",

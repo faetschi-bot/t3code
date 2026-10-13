@@ -2,6 +2,7 @@ import type {
   EditorId,
   EnvironmentId,
   ProjectScript,
+  ProviderDriverKind,
   ResolvedKeybindingsConfig,
   ThreadId,
 } from "@t3tools/contracts";
@@ -21,6 +22,7 @@ import { OpenInPicker } from "./OpenInPicker";
 import { ThreadDetailsSection } from "./ThreadDetailsSection";
 import { ThreadAutomationsPanel } from "./ThreadAutomationsPanel";
 import { ThreadRelationshipsPanel } from "./ThreadRelationshipsControl";
+import { ThreadUsagePanel } from "./ThreadUsagePanel";
 
 const GitActionsControl = memo(BaseGitActionsControl);
 
@@ -62,6 +64,8 @@ export interface ThreadDetailsPanelProps extends Pick<
     input: NewProjectScriptInput,
   ) => Promise<ProjectScriptActionResult>;
   onDeleteProjectScript: (scriptId: string) => Promise<ProjectScriptActionResult>;
+  /** Driver of the provider the session is pointed at; scopes the Usage headline. */
+  activeProviderDriver?: ProviderDriverKind | undefined;
 }
 
 export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
@@ -170,6 +174,10 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
                 ) : null}
               </div>
             </ThreadDetailsSection>
+          ) : null}
+
+          {density === "full" ? (
+            <ThreadUsagePanel providerDriver={props.activeProviderDriver} />
           ) : null}
 
           {density === "full" && !props.draftId ? (

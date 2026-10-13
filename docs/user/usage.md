@@ -121,6 +121,12 @@ or endpoint configurations do not report subscription limits.
 API-key accounts may not report subscription limits. This also applies to Claude connections
 using a proxy through `ANTHROPIC_AUTH_TOKEN`.
 
+The thread details card beside a conversation also shows a **Usage** row for the provider that
+thread runs on, led by the window closest to running out; amber marks it past 60% used and red
+past 90%. Expand it for one group per provider, each with its windows and next reset.
+**Settings → General** controls how often it re-checks (**Usage refresh interval**) and which
+window it leads with (**Usage headline window**).
+
 ## Connect a CLIProxyAPI hub
 
 To see pooled accounts, open **Settings → Providers → Usage providers → Add hub**. Choose the

@@ -15,6 +15,7 @@ import {
   setProjectExpanded,
   setSidebarProjectScopeKey,
   setThreadChangedFilesExpanded,
+  setUsageProviderCollapsed,
   type UiState,
 } from "./uiStateStore";
 
@@ -27,6 +28,7 @@ function makeUiState(overrides: Partial<UiState> = {}): UiState {
     threadChangedFilesExpandedById: {},
     defaultAdvertisedEndpointKey: null,
     pullRequestMergeMethod: "merge",
+    collapsedUsageProviders: [],
     ...overrides,
   };
 }
@@ -138,6 +140,19 @@ describe("uiStateStore pure functions", () => {
     });
   });
 
+  it("stores per-provider Usage collapse choices without re-expanding untouched providers", () => {
+    const state = makeUiState();
+    const collapsedCodex = setUsageProviderCollapsed(state, "codex", true);
+
+    expect(collapsedCodex.collapsedUsageProviders).toEqual(["codex"]);
+    // Re-collapsing an already-collapsed provider is a no-op identity.
+    expect(setUsageProviderCollapsed(collapsedCodex, "codex", true)).toBe(collapsedCodex);
+
+    const alsoOpenCode = setUsageProviderCollapsed(collapsedCodex, "opencode", true);
+    const expandedCodex = setUsageProviderCollapsed(alsoOpenCode, "codex", false);
+    expect(expandedCodex.collapsedUsageProviders).toEqual(["opencode"]);
+  });
+
   it("stores the endpoint preference by stable key", () => {
     const next = setDefaultAdvertisedEndpointKey(makeUiState(), "desktop-core:lan:http");
 
@@ -209,6 +224,7 @@ describe("parsePersistedState", () => {
           "turn-2": true,
         },
       },
+      collapsedUsageProviders: [],
     });
   });
 
@@ -332,6 +348,7 @@ describe("uiStateStore persistence", () => {
         },
       },
       pullRequestMergeMethod: "merge",
+      collapsedUsageProviders: [],
     });
     expect(parsePersistedState(persisted)).toEqual({
       ...state,

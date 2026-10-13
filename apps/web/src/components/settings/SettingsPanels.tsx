@@ -623,6 +623,12 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.contextWindowMeterEnabled !== DEFAULT_UNIFIED_SETTINGS.contextWindowMeterEnabled
         ? ["Context window indicator"]
         : []),
+      ...(settings.usageRefreshInterval !== DEFAULT_UNIFIED_SETTINGS.usageRefreshInterval
+        ? ["Usage refresh interval"]
+        : []),
+      ...(settings.usageHeadlineWindow !== DEFAULT_UNIFIED_SETTINGS.usageHeadlineWindow
+        ? ["Usage headline window"]
+        : []),
       ...(settings.responseStreamingMode !== DEFAULT_UNIFIED_SETTINGS.responseStreamingMode
         ? ["Response streaming"]
         : []),
@@ -693,6 +699,8 @@ export function useSettingsRestore(onRestored?: () => void) {
       settings.proactivePanelsEnabled,
       settings.environmentIdentificationMode,
       settings.contextWindowMeterEnabled,
+      settings.usageRefreshInterval,
+      settings.usageHeadlineWindow,
       settings.fontFamilyCode,
       settings.fontFamilyComposer,
       settings.fontFamilySans,
@@ -807,6 +815,8 @@ export function useSettingsRestore(onRestored?: () => void) {
       sendShortcut: DEFAULT_UNIFIED_SETTINGS.sendShortcut,
       followUpBehavior: DEFAULT_UNIFIED_SETTINGS.followUpBehavior,
       contextWindowMeterEnabled: DEFAULT_UNIFIED_SETTINGS.contextWindowMeterEnabled,
+      usageRefreshInterval: DEFAULT_UNIFIED_SETTINGS.usageRefreshInterval,
+      usageHeadlineWindow: DEFAULT_UNIFIED_SETTINGS.usageHeadlineWindow,
       environmentIdentificationMode: DEFAULT_UNIFIED_SETTINGS.environmentIdentificationMode,
       glassOpacity: DEFAULT_UNIFIED_SETTINGS.glassOpacity,
       panelAnimationDurationMs: DEFAULT_UNIFIED_SETTINGS.panelAnimationDurationMs,
@@ -2180,6 +2190,18 @@ export function GeneralSettingsPanel() {
     { value: "mod-enter-multiline", label: `${modifierLabel} + Enter for multiline prompts` },
     { value: "mod-enter", label: `${modifierLabel} + Enter always` },
   ] as const;
+  const usageRefreshIntervalOptions = [
+    { value: "30s", label: "Every 30 seconds" },
+    { value: "1m", label: "Every minute" },
+    { value: "5m", label: "Every 5 minutes" },
+    { value: "manual", label: "Manual only" },
+  ] as const;
+  const usageHeadlineWindowOptions = [
+    { value: "auto", label: "Closest to running out" },
+    { value: "session", label: "Session only" },
+    { value: "weekly", label: "Weekly only" },
+    { value: "monthly", label: "Monthly only" },
+  ] as const;
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const navigate = useNavigate();
@@ -2793,6 +2815,110 @@ export function GeneralSettingsPanel() {
               }
               aria-label="Collapse composer on scroll"
             />
+          }
+        />
+
+        <SettingsRow
+          {...searchableSetting("usage-refresh-interval")}
+          description="How often the thread's Usage panel re-checks subscription limits"
+          resetAction={
+            settings.usageRefreshInterval !== DEFAULT_UNIFIED_SETTINGS.usageRefreshInterval ? (
+              <SettingResetButton
+                label="usage refresh interval"
+                onClick={() =>
+                  updateSettings({
+                    usageRefreshInterval: DEFAULT_UNIFIED_SETTINGS.usageRefreshInterval,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Select
+              value={settings.usageRefreshInterval}
+              onValueChange={(value) => {
+                const option = usageRefreshIntervalOptions.find((option) => option.value === value);
+                if (option) updateSettings({ usageRefreshInterval: option.value });
+              }}
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-auto min-w-0 max-w-full"
+                aria-label="Usage refresh interval"
+              >
+                <SelectValue>
+                  {
+                    usageRefreshIntervalOptions.find(
+                      (option) => option.value === settings.usageRefreshInterval,
+                    )?.label
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false}>
+                {usageRefreshIntervalOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <span className="flex items-center justify-between gap-4">
+                      {option.label}
+                      {settings.usageRefreshInterval === option.value && (
+                        <CheckIcon aria-hidden="true" />
+                      )}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectPopup>
+            </Select>
+          }
+        />
+
+        <SettingsRow
+          {...searchableSetting("usage-headline-window")}
+          description="Which subscription window the thread's Usage headline shows"
+          resetAction={
+            settings.usageHeadlineWindow !== DEFAULT_UNIFIED_SETTINGS.usageHeadlineWindow ? (
+              <SettingResetButton
+                label="usage headline window"
+                onClick={() =>
+                  updateSettings({
+                    usageHeadlineWindow: DEFAULT_UNIFIED_SETTINGS.usageHeadlineWindow,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Select
+              value={settings.usageHeadlineWindow}
+              onValueChange={(value) => {
+                const option = usageHeadlineWindowOptions.find((option) => option.value === value);
+                if (option) updateSettings({ usageHeadlineWindow: option.value });
+              }}
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-auto min-w-0 max-w-full"
+                aria-label="Usage headline window"
+              >
+                <SelectValue>
+                  {
+                    usageHeadlineWindowOptions.find(
+                      (option) => option.value === settings.usageHeadlineWindow,
+                    )?.label
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false}>
+                {usageHeadlineWindowOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <span className="flex items-center justify-between gap-4">
+                      {option.label}
+                      {settings.usageHeadlineWindow === option.value && (
+                        <CheckIcon aria-hidden="true" />
+                      )}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectPopup>
+            </Select>
           }
         />
 

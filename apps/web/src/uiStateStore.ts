@@ -30,6 +30,8 @@ export interface PersistedUiState {
   sidebarProjectScopeKey?: string | null;
   threadChangedFilesExpansionVersion?: number;
   threadChangedFilesExpandedById?: Record<string, Record<string, boolean>>;
+  /** Provider drivers whose thread-card Usage group the user collapsed. */
+  collapsedUsageProviders?: string[];
   pullRequestMergeMethod?: string;
 }
 
@@ -55,8 +57,17 @@ export interface UiPullRequestState {
   pullRequestMergeMethod: PullRequestMergeMethod;
 }
 
+export interface UiUsageState {
+  /**
+   * Provider drivers whose Usage group the user collapsed in the thread details
+   * card. Absent means expanded, so a provider the user never touched shows its
+   * windows.
+   */
+  collapsedUsageProviders: string[];
+}
+
 export interface UiState
-  extends UiProjectState, UiThreadState, UiEndpointState, UiPullRequestState {}
+  extends UiProjectState, UiThreadState, UiEndpointState, UiPullRequestState, UiUsageState {}
 
 const initialState: UiState = {
   projectExpandedById: {},
@@ -66,6 +77,7 @@ const initialState: UiState = {
   threadChangedFilesExpandedById: {},
   defaultAdvertisedEndpointKey: null,
   pullRequestMergeMethod: "merge",
+  collapsedUsageProviders: [],
 };
 
 const LEGACY_PROJECT_CWD_PREFERENCE_PREFIX = "legacy-project-cwd:";
@@ -153,6 +165,7 @@ export function parsePersistedState(parsed: PersistedUiState): UiState {
       parsed.threadChangedFilesExpansionVersion === THREAD_CHANGED_FILES_EXPANSION_VERSION
         ? sanitizePersistedThreadChangedFilesExpanded(parsed.threadChangedFilesExpandedById)
         : {},
+    collapsedUsageProviders: sanitizeStringArray(parsed.collapsedUsageProviders),
     defaultAdvertisedEndpointKey: sanitizeOptionalKey(parsed.defaultAdvertisedEndpointKey),
     sidebarProjectScopeKey: sanitizeOptionalKey(parsed.sidebarProjectScopeKey),
     pullRequestMergeMethod: isPullRequestMergeMethod(parsed.pullRequestMergeMethod)
@@ -231,6 +244,7 @@ export function persistState(state: UiState): void {
         sidebarProjectScopeKey: state.sidebarProjectScopeKey,
         threadChangedFilesExpansionVersion: THREAD_CHANGED_FILES_EXPANSION_VERSION,
         threadChangedFilesExpandedById: state.threadChangedFilesExpandedById,
+        collapsedUsageProviders: state.collapsedUsageProviders,
         pullRequestMergeMethod: state.pullRequestMergeMethod,
       } satisfies PersistedUiState),
     );
@@ -315,6 +329,23 @@ export function setThreadChangedFilesExpanded(
         [turnId]: expanded,
       },
     },
+  };
+}
+
+export function setUsageProviderCollapsed(
+  state: UiState,
+  driver: string,
+  collapsed: boolean,
+): UiState {
+  const isCollapsed = state.collapsedUsageProviders.includes(driver);
+  if (isCollapsed === collapsed) {
+    return state;
+  }
+  return {
+    ...state,
+    collapsedUsageProviders: collapsed
+      ? [...state.collapsedUsageProviders, driver]
+      : state.collapsedUsageProviders.filter((entry) => entry !== driver),
   };
 }
 
@@ -427,6 +458,7 @@ interface UiStateStore extends UiState {
   markThreadVisited: (threadId: string, visitedAt: string) => void;
   markThreadUnread: (threadId: string, latestTurnCompletedAt: string | null | undefined) => void;
   setThreadChangedFilesExpanded: (threadId: string, turnId: string, expanded: boolean) => void;
+  setUsageProviderCollapsed: (driver: string, collapsed: boolean) => void;
   setDefaultAdvertisedEndpointKey: (key: string | null) => void;
   setSidebarProjectScopeKey: (projectKey: string | null) => void;
   setPullRequestMergeMethod: (method: PullRequestMergeMethod) => void;
@@ -446,6 +478,8 @@ export const useUiStateStore = create<UiStateStore>((set) => ({
     set((state) => markThreadUnread(state, threadId, latestTurnCompletedAt)),
   setThreadChangedFilesExpanded: (threadId, turnId, expanded) =>
     set((state) => setThreadChangedFilesExpanded(state, threadId, turnId, expanded)),
+  setUsageProviderCollapsed: (driver, collapsed) =>
+    set((state) => setUsageProviderCollapsed(state, driver, collapsed)),
   setDefaultAdvertisedEndpointKey: (key) =>
     set((state) => setDefaultAdvertisedEndpointKey(state, key)),
   setSidebarProjectScopeKey: (projectKey) =>

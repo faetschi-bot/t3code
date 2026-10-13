@@ -453,6 +453,16 @@ export const ClientSettingsSchema = Schema.Struct({
   composerCollapseOnScroll: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(true))),
   // Rich text is the default; users can opt out for literal Markdown editing.
   composerRichTextEnabled: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(true))),
+  // How often the thread details card re-probes subscription usage. `manual`
+  // leaves it to the refresh action.
+  usageRefreshInterval: Schema.Literals(["30s", "1m", "5m", "manual"]).pipe(
+    Schema.withDecodingDefault(Effect.succeed("1m")),
+  ),
+  // Which window the collapsed Usage headline shows. `auto` is the window
+  // closest to running out.
+  usageHeadlineWindow: Schema.Literals(["auto", "session", "weekly", "monthly"]).pipe(
+    Schema.withDecodingDefault(Effect.succeed("auto")),
+  ),
   sendShortcut: Schema.Literals(["enter", "mod-enter-multiline", "mod-enter"]).pipe(
     Schema.withDecodingDefault(Effect.succeed("enter")),
   ),
@@ -1729,6 +1739,10 @@ export const ClientSettingsPatch = Schema.Struct({
   contextWindowMeterEnabled: Schema.optionalKey(Schema.Boolean),
   composerCollapseOnScroll: Schema.optionalKey(Schema.Boolean),
   composerRichTextEnabled: Schema.optionalKey(Schema.Boolean),
+  usageRefreshInterval: Schema.optionalKey(Schema.Literals(["30s", "1m", "5m", "manual"])),
+  usageHeadlineWindow: Schema.optionalKey(
+    Schema.Literals(["auto", "session", "weekly", "monthly"]),
+  ),
   sendShortcut: Schema.optionalKey(Schema.Literals(["enter", "mod-enter-multiline", "mod-enter"])),
   followUpBehavior: Schema.optionalKey(Schema.Literals(["queue", "steer"])),
   proactivePanelsEnabled: Schema.optionalKey(Schema.Boolean),

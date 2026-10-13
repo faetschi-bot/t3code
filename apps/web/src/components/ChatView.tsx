@@ -11301,6 +11301,7 @@ export default function ChatView(props: ChatViewProps) {
     onEnvironmentChange,
     onEnvModeChange,
     envMode,
+    activeProviderDriver: selectedProvider,
     ...(canOverrideServerThreadEnvMode
       ? {
           activeThreadBranchOverride: activeThreadBranch,
